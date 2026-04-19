@@ -10,9 +10,9 @@ class StealthWorld:
         self.width = width
         self.length = length
         self.max_height = height
-        self.resolution = resolution
+        self.resolution = resolution # Distance between points for simplified calculations 
         
-        # Grid dimensions
+        # Grid dimensions (number of points)
         self.nx = int(width // resolution)
         self.ny = int(length // resolution)
         
@@ -33,7 +33,7 @@ class StealthWorld:
         self.terrain_map = 0.5 * self.max_height * complexity * (
             np.sin(0.5e-3 * X) * np.cos(0.5e-3 * Y)
         )
-        # Octave 2: Smaller peaks
+        # Octave 2: Smaller peaks (add it to the previous)
         self.terrain_map += 0.2 * self.max_height * complexity * (
             np.sin(2e-3 * X) * np.sin(1.5e-3 * Y)
         )
@@ -46,6 +46,7 @@ class StealthWorld:
         Returns the terrain height Z at coordinates (x, y).
         Uses grid indexing: ix = x / resolution
         """
+        # Get the indices of the closest values
         ix = int(np.clip(x // self.resolution, 0, self.nx - 1))
         iy = int(np.clip(y // self.resolution, 0, self.ny - 1))
         return self.terrain_map[ix, iy]
@@ -73,8 +74,10 @@ class StealthWorld:
         num_samples = int(distance / sampling_step)
         if num_samples < 2: return True
 
-        # Linear interpolation between start and end
+        # Linear interpolation between start and end (t represents the percentage of the distance between the start and the end)
         t_values = np.linspace(0, 1, num_samples)
+
+        # Formule : P(t) = P_start + t * (P_end - Pstart)
         for t in t_values:
             # Current point on the ray
             current_pt = start_pos + t * (end_pos - start_pos)
@@ -82,6 +85,6 @@ class StealthWorld:
             # Check if this point's altitude is below the ground at its location
             ground_h = self.get_height_at(current_pt[0], current_pt[1])
             if current_pt[2] < ground_h:
-                return False # LoS blocked by terrain
+                return False # LoS blocked by terrain (not not necessary an agent !!)
                 
-        return True # Path is clear
+        return True # Path is clear (Nothing checked)
